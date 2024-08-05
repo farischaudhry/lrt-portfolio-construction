@@ -11,6 +11,7 @@ from HRPPortfolios import *
 from ClusteringPortfolios import *
 from MomentumPortfolios import *
 from MeanReversionPortfolios import *
+from MarkowitzPortfolios import *
 
 def get_data(isOneValid=False):
     assets = ['EETH-USD', 'RSETH-USD', 'UNIETH-USD', 'PUFETH-USD', 'EZETH-USD', 'RSWETH-USD', 'WEETH-USD']
