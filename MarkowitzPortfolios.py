@@ -1,4 +1,5 @@
 from Portfolio import Portfolio
+import riskfolio as rp
 import pandas as pd
 from pypfopt import EfficientFrontier, risk_models, expected_returns
 import numpy as np
@@ -16,5 +17,15 @@ class MarkowitzPortfolio(Portfolio):
 
         ef = EfficientFrontier(mu, S)
         weights = ef.max_sharpe(risk_free_rate=risk_free_rate)
+        cleaned_weights = ef.clean_weights()
+        return np.array(list(cleaned_weights.values()))
+
+class MinimumVariancePortfolio(Portfolio):
+    def calculate_weights(self):
+        returns = self.data.pct_change().dropna()
+        S = risk_models.sample_cov(self.data)
+
+        ef = EfficientFrontier(None, S)
+        weights = ef.min_volatility()
         cleaned_weights = ef.clean_weights()
         return np.array(list(cleaned_weights.values()))

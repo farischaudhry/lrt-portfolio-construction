@@ -12,6 +12,7 @@ from ClusteringPortfolios import *
 from MomentumPortfolios import *
 from MeanReversionPortfolios import *
 from MarkowitzPortfolios import *
+from BlackLittermanPortfolios import *
 
 def get_data(isOneValid=False):
     assets = ['EETH-USD', 'RSETH-USD', 'UNIETH-USD', 'PUFETH-USD', 'EZETH-USD', 'RSWETH-USD', 'WEETH-USD']
@@ -30,13 +31,14 @@ def main():
 
     portfolios = [
         EqualWeightedPortfolio(data),
-        HRPPortfolio(data),
-        HRPLongShortPortfolio(data),
-        EqualWeightLongShortPortfolio(data),
-        MomentumLongShortPortfolio(data),
-        MeanReversionLongShortPortfolio(data),
-        KMeansPortfolio(data),
-        DBSCANPortfolio(data)
+        # HRPPortfolio(data)
+        # HRPLongShortPortfolio(data),
+        # EqualWeightLongShortPortfolio(data),
+        # MomentumLongShortPortfolio(data),
+        # MeanReversionLongShortPortfolio(data),
+        # KMeansPortfolio(data),
+        # DBSCANPortfolio(data),
+        # MinimumVariancePortfolio(data),
     ]
 
     for portfolio in portfolios:
