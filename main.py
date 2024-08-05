@@ -26,19 +26,28 @@ def get_data(isOneValid=False):
         data = data.dropna()
     return data
 
+def calculate_benchmark_returns(data):
+    ew = EqualWeightedPortfolio(data)
+    returns = data.pct_change().dropna()
+    weights = ew.calculate_weights()
+    cumulative_returns = ew.calculate_cumulative_returns(weights, returns)
+    daily_returns = cumulative_returns.pct_change().dropna()
+    return daily_returns
+
 def main():
     data = get_data()
+    benchmark_returns = calculate_benchmark_returns(data)
 
     portfolios = [
-        EqualWeightedPortfolio(data),
-        # HRPPortfolio(data)
-        # HRPLongShortPortfolio(data),
-        # EqualWeightLongShortPortfolio(data),
-        # MomentumLongShortPortfolio(data),
-        # MeanReversionLongShortPortfolio(data),
-        # KMeansPortfolio(data),
-        # DBSCANPortfolio(data),
-        # MinimumVariancePortfolio(data),
+        EqualWeightedPortfolio(data, benchmark_returns),
+        EqualWeightLongShortPortfolio(data, benchmark_returns),
+        HRPPortfolio(data, benchmark_returns),
+        HRPLongShortPortfolio(data, benchmark_returns),
+        MomentumLongShortPortfolio(data, benchmark_returns),
+        MeanReversionLongShortPortfolio(data, benchmark_returns),
+        KMeansPortfolio(data, benchmark_returns),
+        DBSCANPortfolio(data, benchmark_returns),
+        MinimumVariancePortfolio(data, benchmark_returns),
     ]
 
     for portfolio in portfolios:

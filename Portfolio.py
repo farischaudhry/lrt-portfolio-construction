@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 import numpy as np
+import pandas as pd
 
 class Portfolio(ABC):
-    def __init__(self, data):
+    def __init__(self, data, benchmark_returns=pd.Series()):
         self.data = data
+        self.benchmark_returns = benchmark_returns
+        self.benchmark_rate = benchmark_returns.mean()
 
     @staticmethod
     def calculate_cumulative_returns(weights, returns):
@@ -13,15 +16,9 @@ class Portfolio(ABC):
         cumulative_returns.dropna(inplace=True)
         return cumulative_returns
 
-    @staticmethod
-    def calculate_sharpe_ratio(returns, risk_free_rate=0.05):
-        daily_risk_free_return = (1 + risk_free_rate) ** (1 / 365) - 1
-        excess_returns = returns - daily_risk_free_return
-        annualized_return = np.prod(1 + excess_returns) ** (365 / len(excess_returns)) - 1
-        annualized_std = excess_returns.std() * np.sqrt(365)
-        sharpe_ratio = (annualized_return - risk_free_rate) / annualized_std
-
-        return sharpe_ratio
+    def calculate_information_ratio(self, returns):
+        excess_returns = returns - self.benchmark_returns
+        return excess_returns.mean() / excess_returns.std()
 
     @abstractmethod
     def calculate_weights(self):
@@ -32,6 +29,6 @@ class Portfolio(ABC):
         weights = self.calculate_weights()
         cumulative_returns = self.calculate_cumulative_returns(weights, returns)
         daily_returns = cumulative_returns.pct_change().dropna()
-        sharpe_ratio = self.calculate_sharpe_ratio(daily_returns)
-        print(f"{self.__class__.__name__} Sharpe Ratio: {sharpe_ratio:.3f}")
+        information_ratio = self.calculate_information_ratio(daily_returns)
+        print(f"{self.__class__.__name__} Information Ratio: {information_ratio:.3f}")
         return cumulative_returns
