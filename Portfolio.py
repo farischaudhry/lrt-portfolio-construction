@@ -3,18 +3,39 @@ import numpy as np
 import pandas as pd
 
 class Portfolio(ABC):
-    def __init__(self, data, benchmark_returns=pd.Series()):
+    def __init__(self, data, benchmark_returns=pd.Series(), rebalance_frequency=30):
         self.data = data
         self.benchmark_returns = benchmark_returns
         self.benchmark_rate = benchmark_returns.mean()
+        self.rebalance_frequency = rebalance_frequency
 
     @staticmethod
     def calculate_cumulative_returns(weights, returns):
-        returns = returns.dot(weights)
-        cumulative_returns = (1 + returns).cumprod()
+        print(weights)
+        weighted_returns = (returns * weights).sum(axis=1)
+        cumulative_returns = (1 + weighted_returns).cumprod()
         cumulative_returns.replace([np.inf, -np.inf], np.nan, inplace=True)
         cumulative_returns.dropna(inplace=True)
         return cumulative_returns
+
+    def rebalance(self, returns):
+        weights_list = []
+        rebalance_dates = []
+        for start, end in self.get_rebalance_intervals(returns):
+            interval_weights = self.calculate_weights()
+            weights_list.append(interval_weights)
+            rebalance_dates.append(returns.index[start])
+
+        # Create a DataFrame of weights with appropriate date index
+        weights_df = pd.DataFrame(weights_list, index=rebalance_dates, columns=returns.columns)
+        return weights_df.reindex(returns.index, method='ffill').fillna(method='ffill')
+
+    def get_rebalance_intervals(self, returns):
+        if self.rebalance_frequency == None:
+            return [(0, len(returns))]
+        else:
+            return [(i, i + 1) for i in range(0, len(returns), self.rebalance_frequency)]
+
 
     def calculate_information_ratio(self, returns):
         excess_returns = returns - self.benchmark_returns
@@ -57,9 +78,10 @@ class Portfolio(ABC):
     def performance_attribution(self, returns, weights):
         benchmark_return = self.benchmark_returns.mean()
 
-        allocation_effect = (weights - benchmark_return) * returns.mean()
+        allocation_effect = (weights.mean() - benchmark_return) * returns.mean()
         selection_effect = (returns.mean() - benchmark_return) * benchmark_return
-        interaction_effect = (weights - 1/len(weights)) * (returns.mean() - benchmark_return)
+        # 1/N is the benchmark weight for each asset
+        interaction_effect = (weights.mean() - 1/len(weights)) * (returns.mean() - benchmark_return)
 
         total_allocation_effect = allocation_effect.sum()
         total_selection_effect = selection_effect.sum()
@@ -96,7 +118,7 @@ class Portfolio(ABC):
 
     def try_strategy(self):
         returns = self.data.pct_change().dropna()
-        weights = self.calculate_weights()
+        weights = self.rebalance(returns)
         cumulative_returns = self.calculate_cumulative_returns(weights, returns)
         daily_returns = cumulative_returns.pct_change().dropna()
 
