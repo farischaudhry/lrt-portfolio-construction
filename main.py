@@ -13,11 +13,18 @@ from MomentumPortfolios import *
 from MeanReversionPortfolios import *
 from MarkowitzPortfolios import *
 from BlackLittermanPortfolios import *
+from DeltaNeutralPortfolios import *
 
-def get_data(isOneValid=False):
-    assets = ['EETH-USD', 'RSETH-USD', 'UNIETH-USD', 'PUFETH-USD', 'EZETH-USD', 'RSWETH-USD', 'WEETH-USD']
+def get_data(isOneValid=False, inETH=False):
+    assets = ['EETH-USD', 'RSETH-USD', 'UNIETH-USD', 'PUFETH-USD', 'EZETH-USD', 'RSWETH-USD', 'WEETH-USD', 'ETH-USD']
     end_date = datetime.today().strftime('%Y-%m-%d')
     data = yf.download(assets, start='2020-01-01', end=end_date)['Adj Close']
+
+    # Normalize the LRT prices by ETH-USD price
+    if inETH:
+        eth_prices = data['ETH-USD']
+        data = data.div(eth_prices, axis=0)
+    data = data.drop(columns='ETH-USD')
 
     # If isOneValid is True, only one asset must be valid for the row to be kept.
     if isOneValid:
@@ -35,19 +42,17 @@ def calculate_benchmark_returns(data):
     return daily_returns
 
 def main():
-    data = get_data()
+    data = get_data(inETH=False)
     benchmark_returns = calculate_benchmark_returns(data)
 
     portfolios = [
         EqualWeightedPortfolio(data, benchmark_returns),
-        EqualWeightLongShortPortfolio(data, benchmark_returns),
-        HRPPortfolio(data, benchmark_returns),
-        HRPLongShortPortfolio(data, benchmark_returns),
+        # EqualWeightLongShortPortfolio(data, benchmark_returns),
+        # HRPPortfolio(data, benchmark_returns),
+        # HRPLongShortPortfolio(data, benchmark_returns),
         MomentumLongShortPortfolio(data, benchmark_returns),
         MeanReversionLongShortPortfolio(data, benchmark_returns),
-        KMeansPortfolio(data, benchmark_returns),
-        DBSCANPortfolio(data, benchmark_returns),
-        MinimumVariancePortfolio(data, benchmark_returns),
+        # MinimumVariancePortfolio(data, benchmark_returns),
     ]
 
     for portfolio in portfolios:
