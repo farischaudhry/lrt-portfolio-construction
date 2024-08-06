@@ -11,7 +11,6 @@ class Portfolio(ABC):
 
     @staticmethod
     def calculate_cumulative_returns(weights, returns):
-        print(weights)
         weighted_returns = (returns * weights).sum(axis=1)
         cumulative_returns = (1 + weighted_returns).cumprod()
         cumulative_returns.replace([np.inf, -np.inf], np.nan, inplace=True)

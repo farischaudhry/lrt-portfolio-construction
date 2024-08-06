@@ -17,12 +17,12 @@ from DeltaNeutralPortfolios import *
 '''
 How to use:
 
-- To change the LRTs, change the 'assets' list in the get_data function.
+- To change the LRTs, change the 'assets' list in the get_data function (must be on Yahoo Finance).
 - To change the portfolio strategies, change the 'portfolios' list in the main function.
 - To create a new portfolio strategy, create a new class inheriting 'Portfolio' and implement the 'calculate_weights' method, which returns the weights for each asset.
 - By default, weights are reblanced every 30 days. To change this, set the 'rebalance_frequency' parameter in the portfolio class constructor.
 - Only data up to each rebalance date is used to calculate the weights to prevent look-ahead bias.
-- To change from USD to ETH, set inETH=True when calling get_data in the main function.
+- To change between USD to ETH, set inETH=False or True when calling get_data in the main function.
 - Bootstraped performance metrics can be enabled by uncommenting the 'bootstrap' function in 'try_strategy' in 'Portfolio'.
 '''
 
