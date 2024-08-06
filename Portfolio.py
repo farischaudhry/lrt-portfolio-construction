@@ -42,14 +42,35 @@ class Portfolio(ABC):
         information_ratio = self.calculate_information_ratio(returns)
         max_drawdown = self.calculate_max_drawdown(returns)
         calmar_ratio = self.calculate_calmar_ratio(returns)
-        volatility = returns.std()
+        annualized_return = np.prod(1 + returns) ** (365 / len(returns)) - 1
+        annualized_volatility = returns.std() * np.sqrt(365)
 
         return {
             "Sharpe Ratio": sharpe_ratio,
             "Information Ratio": information_ratio,
             "Max Drawdown": max_drawdown,
             "Calmar Ratio": calmar_ratio,
-            "Volatility": volatility,
+            "Volatility": annualized_volatility,
+            "Annualized Return": annualized_return
+        }
+
+    def performance_attribution(self, returns, weights):
+        benchmark_return = self.benchmark_returns.mean()
+
+        allocation_effect = (weights - benchmark_return) * returns.mean()
+        selection_effect = (returns.mean() - benchmark_return) * benchmark_return
+        interaction_effect = (weights - 1/len(weights)) * (returns.mean() - benchmark_return)
+
+        total_allocation_effect = allocation_effect.sum()
+        total_selection_effect = selection_effect.sum()
+        total_interaction_effect = interaction_effect.sum()
+
+        return {
+            "Portfolio Returns": returns.mean(),
+            "Benchmark Returns": benchmark_return,
+            "Allocation Effect": total_allocation_effect,
+            "Selection Effect": total_selection_effect,
+            "Interaction Effect": total_interaction_effect
         }
 
     def bootstrap_performance_metrics(self, returns, num_bootstrap=1000):
@@ -79,9 +100,12 @@ class Portfolio(ABC):
         cumulative_returns = self.calculate_cumulative_returns(weights, returns)
         daily_returns = cumulative_returns.pct_change().dropna()
 
-        print(f"{self.__class__.__name__} Performance Metrics:")
+        print(f"\033[1;31m{self.__class__.__name__} Performance Metrics:\033[0m")
         for metric, value in self.calculate_performance_metrics(daily_returns).items():
-            print(f"{metric}: {value:.3f}")
+            print(f"{metric}: {value:.5f}")
+        for metric, value in self.performance_attribution(daily_returns, weights).items():
+            print(f"{metric}: {value}")
+        print("-" * 80)
 
         # print(self.bootstrap_performance_metrics(daily_returns))
 

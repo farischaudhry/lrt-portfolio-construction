@@ -2,7 +2,7 @@ import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-
+import seaborn as sns
 from datetime import datetime
 
 from Portfolio import Portfolio
@@ -12,11 +12,21 @@ from ClusteringPortfolios import *
 from MomentumPortfolios import *
 from MeanReversionPortfolios import *
 from MarkowitzPortfolios import *
-from BlackLittermanPortfolios import *
 from DeltaNeutralPortfolios import *
 
+'''
+How to use:
+
+- To change the LRTs, change the 'assets' list in the get_data function.
+- To change the portfolio strategies, change the 'portfolios' list in the main function.
+- To create a new portfolio strategy, create a new class inheriting 'Portfolio' and implement the 'try_strategy' method, which returns the weights for each asset.
+- To change from USD to ETH, set inETH=True when calling get_data in the main function.
+'''
+
+
 def get_data(isOneValid=False, inETH=False):
-    assets = ['EETH-USD', 'RSETH-USD', 'UNIETH-USD', 'PUFETH-USD', 'EZETH-USD', 'RSWETH-USD', 'WEETH-USD', 'ETH-USD']
+    # ETH-USD is for normalizing the LRTs by ETH-USD price only
+    assets = ['ETH-USD', 'EETH-USD', 'RSETH-USD', 'UNIETH-USD', 'PUFETH-USD', 'EZETH-USD', 'RSWETH-USD', 'WEETH-USD']
     end_date = datetime.today().strftime('%Y-%m-%d')
     data = yf.download(assets, start='2020-01-01', end=end_date)['Adj Close']
 
@@ -42,17 +52,17 @@ def calculate_benchmark_returns(data):
     return daily_returns
 
 def main():
-    data = get_data(inETH=False)
+    data = get_data(inETH=True)
     benchmark_returns = calculate_benchmark_returns(data)
 
     portfolios = [
         EqualWeightedPortfolio(data, benchmark_returns),
-        # EqualWeightLongShortPortfolio(data, benchmark_returns),
-        # HRPPortfolio(data, benchmark_returns),
-        # HRPLongShortPortfolio(data, benchmark_returns),
-        MomentumLongShortPortfolio(data, benchmark_returns),
-        MeanReversionLongShortPortfolio(data, benchmark_returns),
-        # MinimumVariancePortfolio(data, benchmark_returns),
+        HRPPortfolio(data, benchmark_returns, distance_metric='euclidean'),
+        MinimumVariancePortfolio(data, benchmark_returns),
+        RiskParityPortfolio(data, benchmark_returns),
+        EqualRiskContributionPortfolio(data, benchmark_returns),
+        InverseVolatilityPortfolio(data, benchmark_returns),
+        MaximumDiversificationPortfolio(data, benchmark_returns),
     ]
 
     for portfolio in portfolios:
