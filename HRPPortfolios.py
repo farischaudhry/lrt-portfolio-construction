@@ -3,13 +3,29 @@ import pandas as pd
 import numpy as np
 from scipy.cluster.hierarchy import linkage, to_tree
 from scipy.spatial.distance import pdist
+from sklearn.metrics import mutual_info_score
+from scipy.spatial.distance import cosine
+from sklearn.feature_selection import mutual_info_classif
 from Portfolio import Portfolio
 
 class HRPPortfolio(Portfolio):
+    def __init__(self, data, benchmark_returns, distance_metric='euclidean'):
+        super().__init__(data, benchmark_returns)
+        self.distance_metric = distance_metric
+
     def calculate_weights(self):
         returns = self.data.pct_change().dropna()
         corr = returns.corr()
-        distance = pdist(1 / corr, 'euclidean')
+
+        if self.distance_metric == 'mutual_info':
+            # Discretize the continuous returns into bins
+            bins = np.apply_along_axis(lambda x: pd.cut(x, bins=5, labels=False), axis=0, arr=returns)
+            distance = pdist(bins.T, metric=lambda x, y: mutual_info_score(x, y))
+        elif self.distance_metric == 'cosine':
+            distance = pdist(returns.T, metric='cosine')
+        else:  # Default to euclidean
+            distance = pdist(1 / corr, 'euclidean')
+
         linkage_matrix = linkage(distance, method='single')
         tree = to_tree(linkage_matrix)
 
