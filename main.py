@@ -19,10 +19,10 @@ How to use:
 
 - To change the LRTs, change the 'assets' list in the get_data function.
 - To change the portfolio strategies, change the 'portfolios' list in the main function.
-- To create a new portfolio strategy, create a new class inheriting 'Portfolio' and implement the 'try_strategy' method, which returns the weights for each asset.
+- To create a new portfolio strategy, create a new class inheriting 'Portfolio' and implement the 'calculate_weights' method, which returns the weights for each asset.
 - To change from USD to ETH, set inETH=True when calling get_data in the main function.
+- Bootstraped performance metrics can be enabled by uncommenting the 'bootstrap' function in 'try_strategy' in 'Portfolio'.
 '''
-
 
 def get_data(isOneValid=False, inETH=False):
     # ETH-USD is for normalizing the LRTs by ETH-USD price only
@@ -57,12 +57,13 @@ def main():
 
     portfolios = [
         EqualWeightedPortfolio(data, benchmark_returns),
-        HRPPortfolio(data, benchmark_returns, distance_metric='euclidean'),
-        MinimumVariancePortfolio(data, benchmark_returns),
-        RiskParityPortfolio(data, benchmark_returns),
-        EqualRiskContributionPortfolio(data, benchmark_returns),
-        InverseVolatilityPortfolio(data, benchmark_returns),
-        MaximumDiversificationPortfolio(data, benchmark_returns),
+        RandomWeightedPortfolio(data, benchmark_returns),
+        # HRPPortfolio(data, benchmark_returns, distance_metric='euclidean'),
+        # MinimumVariancePortfolio(data, benchmark_returns),
+        # RiskParityPortfolio(data, benchmark_returns),
+        # EqualRiskContributionPortfolio(data, benchmark_returns),
+        # InverseVolatilityPortfolio(data, benchmark_returns),
+        # MaximumDiversificationPortfolio(data, benchmark_returns),
     ]
 
     for portfolio in portfolios:

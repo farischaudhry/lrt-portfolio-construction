@@ -18,3 +18,8 @@ class EqualWeightLongShortPortfolio(Portfolio):
         weights[sorted_vols.index[:half_point]] = -sorted_vols[:half_point] / sorted_vols[:half_point].sum()
         weights[sorted_vols.index[half_point:]] = sorted_vols[half_point:] / sorted_vols[half_point:].sum()
         return weights
+
+class RandomWeightedPortfolio(Portfolio):
+    def calculate_weights(self):
+        weights = np.random.random(len(self.data.columns))
+        return weights / weights.sum()
