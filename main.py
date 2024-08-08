@@ -53,21 +53,7 @@ def calculate_benchmark_returns(data):
     daily_returns = cumulative_returns.pct_change().dropna()
     return daily_returns
 
-def main():
-    data = get_data(inETH=True)
-    benchmark_returns = calculate_benchmark_returns(data)
-
-    portfolios = [
-        EqualWeightedPortfolio(data, benchmark_returns),
-        # RandomWeightedPortfolio(data, benchmark_returns),
-        HRPPortfolio(data, benchmark_returns, distance_metric='euclidean'),
-        MinimumVariancePortfolio(data, benchmark_returns),
-        RiskParityPortfolio(data, benchmark_returns),
-        EqualRiskContributionPortfolio(data, benchmark_returns),
-        InverseVolatilityPortfolio(data, benchmark_returns),
-        MaximumDiversificationPortfolio(data, benchmark_returns),
-    ]
-
+def test_portfolios(portfolios, data, benchmark_returns):
     for portfolio in portfolios:
         cumulative_returns = portfolio.try_strategy()
         plt.plot(cumulative_returns, label=portfolio.__class__.__name__)
@@ -78,6 +64,86 @@ def main():
     plt.legend()
     plt.grid(True)
     plt.show()
+
+def long_only_usd_portfolios():
+    data = get_data(inETH=False)
+    benchmark_returns = calculate_benchmark_returns(data)
+
+    portfolios = [
+        EqualWeightedPortfolio(data, benchmark_returns),
+        HRPPortfolio(data, benchmark_returns, distance_metric='euclidean'),
+        MinimumVariancePortfolio(data, benchmark_returns),
+        RiskParityPortfolio(data, benchmark_returns),
+        EqualRiskContributionPortfolio(data, benchmark_returns),
+        MaximumDiversificationPortfolio(data, benchmark_returns),
+    ]
+
+    test_portfolios(portfolios, data, benchmark_returns)
+
+def long_only_eth_portfolios():
+    data = get_data(inETH=True)
+    benchmark_returns = calculate_benchmark_returns(data)
+
+    portfolios = [
+        EqualWeightedPortfolio(data, benchmark_returns),
+        HRPPortfolio(data, benchmark_returns, distance_metric='euclidean'),
+        # MinimumVariancePortfolio(data, benchmark_returns),
+        RiskParityPortfolio(data, benchmark_returns),
+        # EqualRiskContributionPortfolio(data, benchmark_returns),
+        # MaximumDiversificationPortfolio(data, benchmark_returns),
+        MarkowitzPortfolio(data, benchmark_returns),
+    ]
+
+    test_portfolios(portfolios, data, benchmark_returns)
+
+def long_short_usd_portfolios():
+    data = get_data(inETH=False)
+    benchmark_returns = calculate_benchmark_returns(data)
+
+    portfolios = [
+        EqualWeightedPortfolio(data, benchmark_returns),
+        HRPPortfolio(data, benchmark_returns, distance_metric='euclidean'),
+        MinimumVariancePortfolio(data, benchmark_returns),
+        RiskParityPortfolio(data, benchmark_returns),
+        EqualRiskContributionPortfolio(data, benchmark_returns),
+        MaximumDiversificationPortfolio(data, benchmark_returns),
+    ]
+
+    test_portfolios(portfolios, data, benchmark_returns)
+
+def long_short_eth_portfolios():
+    data = get_data(inETH=True)
+    benchmark_returns = calculate_benchmark_returns(data)
+
+    portfolios = [
+        EqualWeightedPortfolio(data, benchmark_returns),
+        HRPPortfolio(data, benchmark_returns, distance_metric='euclidean'),
+        MinimumVariancePortfolio(data, benchmark_returns),
+        RiskParityPortfolio(data, benchmark_returns),
+        EqualRiskContributionPortfolio(data, benchmark_returns),
+        MaximumDiversificationPortfolio(data, benchmark_returns),
+    ]
+
+def main():
+    data = get_data(inETH=True)
+    benchmark_returns = calculate_benchmark_returns(data)
+
+    # long_only_usd_portfolios()
+    long_only_eth_portfolios()
+    # long_short_usd_portfolios()
+    # long_short_eth_portfolios()
+
+    # portfolios = [
+    #     EqualWeightedPortfolio(data, benchmark_returns),
+    #     # RandomWeightedPortfolio(data, benchmark_returns),
+    #     HRPPortfolio(data, benchmark_returns, distance_metric='euclidean'),
+    #     MinimumVariancePortfolio(data, benchmark_returns),
+    #     RiskParityPortfolio(data, benchmark_returns),
+    #     EqualRiskContributionPortfolio(data, benchmark_returns),
+    #     # MaximumDiversificationPortfolio(data, benchmark_returns),
+    # ]
+
+    # test_portfolios(portfolios, data, benchmark_returns)
 
 if __name__ == '__main__':
     main()

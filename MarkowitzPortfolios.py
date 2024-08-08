@@ -63,14 +63,6 @@ class EqualRiskContributionPortfolio(Portfolio):
         optimized_weights = minimize(risk_budget_objective, initial_weights, args=(target_risk,), bounds=bounds, constraints=constraints).x
         return optimized_weights
 
-class InverseVolatilityPortfolio(Portfolio):
-    def calculate_weights(self):
-        returns = self.data.pct_change().dropna()
-        volatilities = returns.std()
-        inv_vol = 1 / volatilities
-        weights = inv_vol / inv_vol.sum()
-        return weights
-
 class MaximumDiversificationPortfolio(Portfolio):
     def calculate_weights(self):
         returns = self.data.pct_change().dropna()
