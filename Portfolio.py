@@ -1,12 +1,26 @@
 from abc import ABC, abstractmethod
 import numpy as np
 import pandas as pd
+from sklearn.utils import resample
+import yfinance as yf
 
 class Portfolio(ABC):
-    def __init__(self, data, benchmark_returns=pd.Series(), rebalance_frequency=30):
+    # @staticmethod
+    # def get_eth_futures_data():
+    #     eth_futures_data = []
+    #     for ticker in ['ETH=F']:
+    #         data = yf.download(ticker, start='2020-01-01')['Adj Close']
+    #         data.name = ticker
+    #         eth_futures_data.append(data)
+    #     eth_futures_data = pd.concat(eth_futures_data, axis=1)
+    #     return eth_futures_data
+
+    # eth_futures_data = get_eth_futures_data()
+
+    def __init__(self, data, benchmark_returns=pd.Series(), rebalance_frequency=30, annual_risk_free_rate=0.05):
         self.data = data
         self.benchmark_returns = benchmark_returns
-        self.benchmark_rate = benchmark_returns.mean()
+        self.daily_risk_free_rate = (1 + annual_risk_free_rate) ** (1 / 365) - 1
         self.rebalance_frequency = rebalance_frequency
 
     @staticmethod
@@ -44,7 +58,7 @@ class Portfolio(ABC):
         return ir * np.sqrt(365)
 
     def calculate_sharpe_ratio(self, returns):
-        excess_returns = returns - self.benchmark_rate
+        excess_returns = returns - self.daily_risk_free_rate
         return (excess_returns.mean() / excess_returns.std()) * np.sqrt(365)
 
     def calculate_max_drawdown(self, returns):
@@ -91,11 +105,6 @@ class Portfolio(ABC):
 
         total_effect = total_allocation_effect + total_selection_effect + total_interaction_effect
 
-        # Normalize to ensure percentages add up to the total effect
-        allocation_effect_pct = total_allocation_effect / total_effect if total_effect != 0 else 0
-        selection_effect_pct = total_selection_effect / total_effect if total_effect != 0 else 0
-        interaction_effect_pct = total_interaction_effect / total_effect if total_effect != 0 else 0
-
         return {
             "Portfolio Returns (Annualized)": annualized_returns,
             "Benchmark Returns (Annualized)": annualized_benchmark_return,
@@ -103,15 +112,18 @@ class Portfolio(ABC):
             "Allocation Effect": total_allocation_effect,
             "Selection Effect": total_selection_effect,
             "Interaction Effect": total_interaction_effect,
-            "Allocation Effect %": allocation_effect_pct,
-            "Selection Effect %": selection_effect_pct,
-            "Interaction Effect %": interaction_effect_pct
         }
 
-    def bootstrap_performance_metrics(self, returns, num_bootstrap=1000):
+    def bootstrap_performance_metrics(self, returns, block_size=20, num_bootstrap=1000):
+        def block_bootstrap(returns, block_size):
+            num_blocks = int(np.ceil(len(returns) / block_size))
+            indices = np.arange(len(returns))
+            sampled_indices = np.concatenate([resample(indices, n_samples=block_size, replace=False) for _ in range(num_blocks)])
+            return returns.iloc[sampled_indices[:len(returns)]]
+
         metrics = []
         for _ in range(num_bootstrap):
-            sample_returns = returns.sample(n=len(returns), replace=True)
+            sample_returns = block_bootstrap(returns, block_size)
             metrics.append(self.calculate_performance_metrics(sample_returns))
         return pd.DataFrame(metrics).describe()
 
@@ -129,7 +141,7 @@ class Portfolio(ABC):
     def calculate_weights(self):
         pass
 
-    def try_strategy(self):
+    def try_strategy(self, bootstrap=False):
         returns = self.data.pct_change().dropna()
         weights = self.rebalance(returns)
         cumulative_returns = self.calculate_cumulative_returns(weights, returns)
@@ -140,8 +152,11 @@ class Portfolio(ABC):
             print(f"{metric}: {value:.5f}")
         for metric, value in self.performance_attribution(daily_returns, weights).items():
             print(f"{metric}: {value}")
-        print("-" * 80)
 
-        # print(self.bootstrap_performance_metrics(daily_returns))
+        if bootstrap:
+            print("Bootstrap Performance Metrics:")
+            print(self.bootstrap_performance_metrics(daily_returns))
+
+        print("-" * 80)
 
         return cumulative_returns
