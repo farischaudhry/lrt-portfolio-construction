@@ -139,7 +139,7 @@ class Portfolio(ABC):
         for metric, value in self.calculate_performance_metrics(daily_returns).items():
             print(f"{metric}: {value:.5f}")
         for metric, value in self.performance_attribution(daily_returns, weights).items():
-            print(f"{metric}: {value:.5f}")
+            print(f"{metric}: {value}")
         print("-" * 80)
 
         # print(self.bootstrap_performance_metrics(daily_returns))
