@@ -4,10 +4,14 @@ from sklearn.cluster import KMeans, DBSCAN
 import pandas as pd
 
 class KMeansPortfolio(Portfolio):
+    def __init__(self, data, benchmark_returns, n_clusters=3):
+        self.n_clusters = n_clusters
+        super().__init__(data, benchmark_returns)
+
     def calculate_weights(self):
         returns = self.data.pct_change().dropna()
         corr = returns.corr()
-        kmeans = KMeans(n_clusters=3, random_state=42, n_init='auto').fit(corr)
+        kmeans = KMeans(n_clusters=self.n_clusters, random_state=42, n_init='auto').fit(corr)
         clusters = kmeans.labels_
 
         cluster_weights = []

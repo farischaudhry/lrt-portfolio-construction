@@ -5,10 +5,12 @@ import numpy as np
 class MeanReversionLongShortPortfolio(Portfolio):
     def calculate_weights(self):
         returns = self.data.pct_change().dropna()
-        mean_reversion = -returns.mean() / returns.std()
-        sorted_mean_reversion = mean_reversion.sort_values()
-        half_point = len(sorted_mean_reversion) // 2
-        weights = pd.Series(0, index=sorted_mean_reversion.index)
-        weights[sorted_mean_reversion.index[:half_point]] = -sorted_mean_reversion[:half_point] / sorted_mean_reversion[:half_point].sum()
-        weights[sorted_mean_reversion.index[half_point:]] = sorted_mean_reversion[half_point:] / sorted_mean_reversion[half_point:].sum()
+        mean_reversion_scores = returns.apply(lambda x: (x - x.mean()) / x.std())
+        sorted_scores = mean_reversion_scores.mean().sort_values()
+
+        half_point = len(sorted_scores) // 2
+        weights = pd.Series(0, index=sorted_scores.index)
+        weights[sorted_scores.index[:half_point]] = 1 / half_point  # Long losers
+        weights[sorted_scores.index[half_point:]] = -1 / half_point  # Short winners
+
         return weights

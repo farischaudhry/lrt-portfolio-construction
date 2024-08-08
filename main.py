@@ -12,6 +12,7 @@ from ClusteringPortfolios import *
 from MomentumPortfolios import *
 from MeanReversionPortfolios import *
 from MarkowitzPortfolios import *
+from FactorPortfolios import *
 
 '''
 How to use:
@@ -22,7 +23,7 @@ How to use:
 - By default, weights are reblanced every 30 days. To change this, set the 'rebalance_frequency' parameter in the portfolio class constructor.
 - Only data up to each rebalance date is used to calculate the weights to prevent look-ahead bias.
 - To change between USD to ETH, set inETH=False or True when calling get_data in the main function.
-- Bootstraped performance metrics can be enabled by uncommenting the 'bootstrap' function in 'try_strategy' in 'Portfolio'.
+- Bootstraped performance metrics can be enabled by setting bootstrap=True when calling the test_portfolios function.
 '''
 
 def get_data(isOneValid=False, inETH=False):
@@ -52,9 +53,9 @@ def calculate_benchmark_returns(data):
     daily_returns = cumulative_returns.pct_change().dropna()
     return daily_returns
 
-def test_portfolios(portfolios, data, benchmark_returns):
+def test_portfolios(portfolios, data, benchmark_returns, bootstrap=False):
     for portfolio in portfolios:
-        cumulative_returns = portfolio.try_strategy()
+        cumulative_returns = portfolio.try_strategy(bootstrap=bootstrap)
         plt.plot(cumulative_returns, label=portfolio.__class__.__name__)
 
     plt.title('Cumulative Returns Comparison')
@@ -64,7 +65,7 @@ def test_portfolios(portfolios, data, benchmark_returns):
     plt.grid(True)
     plt.show()
 
-def long_only_usd_portfolios():
+def long_only_usd_portfolios(bootstrap=False):
     data = get_data(inETH=False)
     benchmark_returns = calculate_benchmark_returns(data)
 
@@ -78,9 +79,9 @@ def long_only_usd_portfolios():
     ]
 
     print("\033[1;34mTesting Long-Only USD Portfolios\033[0m")
-    test_portfolios(portfolios, data, benchmark_returns)
+    test_portfolios(portfolios, data, benchmark_returns, bootstrap=bootstrap)
 
-def long_only_eth_portfolios():
+def long_only_eth_portfolios(bootstrap=False):
     data = get_data(inETH=True)
     benchmark_returns = calculate_benchmark_returns(data)
 
@@ -91,35 +92,40 @@ def long_only_eth_portfolios():
         RiskParityPortfolio(data, benchmark_returns),
         EqualRiskContributionPortfolio(data, benchmark_returns),
         MaximumDiversificationPortfolio(data, benchmark_returns),
-        MarkowitzPortfolio(data, benchmark_returns),
+        # MarkowitzPortfolio(data, benchmark_returns),
     ]
 
     print("\033[1;34mTesting Long-Only ETH Portfolios\033[0m")
-    test_portfolios(portfolios, data, benchmark_returns)
+    test_portfolios(portfolios, data, benchmark_returns, bootstrap=bootstrap)
 
-def long_short_usd_portfolios():
+def long_short_usd_portfolios(bootstrap=False):
     data = get_data(inETH=False)
     benchmark_returns = calculate_benchmark_returns(data)
 
     portfolios = [
         EqualWeightedPortfolio(data, benchmark_returns),
         EqualWeightLongShortPortfolio(data, benchmark_returns),
+        MeanReversionLongShortPortfolio(data, benchmark_returns),
+        MomentumLongShortPortfolio(data, benchmark_returns),
+        HRPLongShortPortfolio(data, benchmark_returns),
     ]
 
     print("\033[1;34mTesting Long-Short USD Portfolios\033[0m")
-    test_portfolios(portfolios, data, benchmark_returns)
+    test_portfolios(portfolios, data, benchmark_returns, bootstrap=bootstrap)
 
-def long_short_eth_portfolios():
+def long_short_eth_portfolios(bootstrap=False):
     data = get_data(inETH=True)
     benchmark_returns = calculate_benchmark_returns(data)
 
     portfolios = [
         EqualWeightedPortfolio(data, benchmark_returns),
-        EqualWeightLongShortPortfolio(data, benchmark_returns),
+        MeanReversionLongShortPortfolio(data, benchmark_returns),
+        MomentumLongShortPortfolio(data, benchmark_returns),
+        HRPLongShortPortfolio(data, benchmark_returns),
     ]
 
     print("\033[1;34mTesting Long-Short ETH Portfolios\033[0m")
-    test_portfolios(portfolios, data, benchmark_returns)
+    test_portfolios(portfolios, data, benchmark_returns, bootstrap=bootstrap)
 
 def main():
     data = get_data(inETH=True)
@@ -128,7 +134,7 @@ def main():
     # long_only_usd_portfolios()
     # long_only_eth_portfolios()
     long_short_usd_portfolios()
-    # long_short_eth_portfolios()
+    long_short_eth_portfolios()
 
 if __name__ == '__main__':
     main()
