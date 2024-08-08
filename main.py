@@ -31,6 +31,7 @@ def get_data(isOneValid=False, inETH=False):
     assets = ['ETH-USD', 'EETH-USD', 'RSETH-USD', 'UNIETH-USD', 'PUFETH-USD', 'EZETH-USD', 'RSWETH-USD', 'WEETH-USD']
     end_date = datetime.today().strftime('%Y-%m-%d')
     data = yf.download(assets, start='2020-01-01', end=end_date)['Adj Close']
+    eth_prices = data['ETH-USD']
 
     # Normalize the LRT prices by ETH-USD price
     if inETH:
@@ -43,7 +44,7 @@ def get_data(isOneValid=False, inETH=False):
         data = data.dropna(axis=1, how='all')
     else:
         data = data.dropna()
-    return data
+    return data, eth_prices
 
 def calculate_benchmark_returns(data):
     ew = EqualWeightedPortfolio(data)
@@ -66,7 +67,7 @@ def test_portfolios(portfolios, data, benchmark_returns, bootstrap=False):
     plt.show()
 
 def long_only_usd_portfolios(bootstrap=False):
-    data = get_data(inETH=False)
+    data, eth_prices = get_data(inETH=False)
     benchmark_returns = calculate_benchmark_returns(data)
 
     portfolios = [
@@ -82,7 +83,7 @@ def long_only_usd_portfolios(bootstrap=False):
     test_portfolios(portfolios, data, benchmark_returns, bootstrap=bootstrap)
 
 def long_only_eth_portfolios(bootstrap=False):
-    data = get_data(inETH=True)
+    data, eth_prices = get_data(inETH=True)
     benchmark_returns = calculate_benchmark_returns(data)
 
     portfolios = [
@@ -99,7 +100,7 @@ def long_only_eth_portfolios(bootstrap=False):
     test_portfolios(portfolios, data, benchmark_returns, bootstrap=bootstrap)
 
 def long_short_usd_portfolios(bootstrap=False):
-    data = get_data(inETH=False)
+    data, eth_prices = get_data(inETH=False)
     benchmark_returns = calculate_benchmark_returns(data)
 
     portfolios = [
@@ -113,7 +114,7 @@ def long_short_usd_portfolios(bootstrap=False):
     test_portfolios(portfolios, data, benchmark_returns, bootstrap=bootstrap)
 
 def long_short_eth_portfolios(bootstrap=False):
-    data = get_data(inETH=True)
+    data, eth_prices = get_data(inETH=True)
     benchmark_returns = calculate_benchmark_returns(data)
 
     portfolios = [
@@ -127,7 +128,7 @@ def long_short_eth_portfolios(bootstrap=False):
     test_portfolios(portfolios, data, benchmark_returns, bootstrap=bootstrap)
 
 def main():
-    data = get_data(inETH=True)
+    data, eth_prices = get_data(inETH=True)
     benchmark_returns = calculate_benchmark_returns(data)
 
     # long_only_usd_portfolios()

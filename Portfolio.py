@@ -7,12 +7,8 @@ import yfinance as yf
 class Portfolio(ABC):
     # @staticmethod
     # def get_eth_futures_data():
-    #     eth_futures_data = []
-    #     for ticker in ['ETH=F']:
-    #         data = yf.download(ticker, start='2020-01-01')['Adj Close']
-    #         data.name = ticker
-    #         eth_futures_data.append(data)
-    #     eth_futures_data = pd.concat(eth_futures_data, axis=1)
+    #     eth_futures_data = yf.download('ETH=F', start='2020-01-01')['Adj Close']
+    #     eth_futures_data.name = 'ETH_Futures'
     #     return eth_futures_data
 
     # eth_futures_data = get_eth_futures_data()
