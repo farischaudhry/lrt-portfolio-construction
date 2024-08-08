@@ -3,10 +3,10 @@ import numpy as np
 import pandas as pd
 
 class Portfolio(ABC):
-    def __init__(self, data, benchmark_returns=pd.Series(), rebalance_frequency=30):
+    def __init__(self, data, benchmark_returns=pd.Series(), rebalance_frequency=30, annual_risk_free_rate=0.05):
         self.data = data
         self.benchmark_returns = benchmark_returns
-        self.benchmark_rate = benchmark_returns.mean()
+        self.daily_risk_free_rate = (1 + annual_risk_free_rate) ** (1 / 365) - 1
         self.rebalance_frequency = rebalance_frequency
 
     @staticmethod
@@ -44,7 +44,7 @@ class Portfolio(ABC):
         return ir * np.sqrt(365)
 
     def calculate_sharpe_ratio(self, returns):
-        excess_returns = returns - self.benchmark_rate
+        excess_returns = returns - self.daily_risk_free_rate
         return (excess_returns.mean() / excess_returns.std()) * np.sqrt(365)
 
     def calculate_max_drawdown(self, returns):

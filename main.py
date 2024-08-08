@@ -12,7 +12,6 @@ from ClusteringPortfolios import *
 from MomentumPortfolios import *
 from MeanReversionPortfolios import *
 from MarkowitzPortfolios import *
-from DeltaNeutralPortfolios import *
 
 '''
 How to use:
@@ -78,6 +77,7 @@ def long_only_usd_portfolios():
         MaximumDiversificationPortfolio(data, benchmark_returns),
     ]
 
+    print("\033[1;34mTesting Long-Only USD Portfolios\033[0m")
     test_portfolios(portfolios, data, benchmark_returns)
 
 def long_only_eth_portfolios():
@@ -87,13 +87,14 @@ def long_only_eth_portfolios():
     portfolios = [
         EqualWeightedPortfolio(data, benchmark_returns),
         HRPPortfolio(data, benchmark_returns, distance_metric='euclidean'),
-        # MinimumVariancePortfolio(data, benchmark_returns),
+        MinimumVariancePortfolio(data, benchmark_returns),
         RiskParityPortfolio(data, benchmark_returns),
-        # EqualRiskContributionPortfolio(data, benchmark_returns),
-        # MaximumDiversificationPortfolio(data, benchmark_returns),
+        EqualRiskContributionPortfolio(data, benchmark_returns),
+        MaximumDiversificationPortfolio(data, benchmark_returns),
         MarkowitzPortfolio(data, benchmark_returns),
     ]
 
+    print("\033[1;34mTesting Long-Only ETH Portfolios\033[0m")
     test_portfolios(portfolios, data, benchmark_returns)
 
 def long_short_usd_portfolios():
@@ -102,13 +103,10 @@ def long_short_usd_portfolios():
 
     portfolios = [
         EqualWeightedPortfolio(data, benchmark_returns),
-        HRPPortfolio(data, benchmark_returns, distance_metric='euclidean'),
-        MinimumVariancePortfolio(data, benchmark_returns),
-        RiskParityPortfolio(data, benchmark_returns),
-        EqualRiskContributionPortfolio(data, benchmark_returns),
-        MaximumDiversificationPortfolio(data, benchmark_returns),
+        EqualWeightLongShortPortfolio(data, benchmark_returns),
     ]
 
+    print("\033[1;34mTesting Long-Short USD Portfolios\033[0m")
     test_portfolios(portfolios, data, benchmark_returns)
 
 def long_short_eth_portfolios():
@@ -117,33 +115,20 @@ def long_short_eth_portfolios():
 
     portfolios = [
         EqualWeightedPortfolio(data, benchmark_returns),
-        HRPPortfolio(data, benchmark_returns, distance_metric='euclidean'),
-        MinimumVariancePortfolio(data, benchmark_returns),
-        RiskParityPortfolio(data, benchmark_returns),
-        EqualRiskContributionPortfolio(data, benchmark_returns),
-        MaximumDiversificationPortfolio(data, benchmark_returns),
+        EqualWeightLongShortPortfolio(data, benchmark_returns),
     ]
+
+    print("\033[1;34mTesting Long-Short ETH Portfolios\033[0m")
+    test_portfolios(portfolios, data, benchmark_returns)
 
 def main():
     data = get_data(inETH=True)
     benchmark_returns = calculate_benchmark_returns(data)
 
     # long_only_usd_portfolios()
-    long_only_eth_portfolios()
-    # long_short_usd_portfolios()
+    # long_only_eth_portfolios()
+    long_short_usd_portfolios()
     # long_short_eth_portfolios()
-
-    # portfolios = [
-    #     EqualWeightedPortfolio(data, benchmark_returns),
-    #     # RandomWeightedPortfolio(data, benchmark_returns),
-    #     HRPPortfolio(data, benchmark_returns, distance_metric='euclidean'),
-    #     MinimumVariancePortfolio(data, benchmark_returns),
-    #     RiskParityPortfolio(data, benchmark_returns),
-    #     EqualRiskContributionPortfolio(data, benchmark_returns),
-    #     # MaximumDiversificationPortfolio(data, benchmark_returns),
-    # ]
-
-    # test_portfolios(portfolios, data, benchmark_returns)
 
 if __name__ == '__main__':
     main()
