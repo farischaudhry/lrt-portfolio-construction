@@ -41,11 +41,11 @@ class Portfolio(ABC):
         ir = excess_returns.mean() / excess_returns.std()
         if np.isnan(ir):
             return 0
-        return ir
+        return ir * np.sqrt(365)
 
     def calculate_sharpe_ratio(self, returns):
         excess_returns = returns - self.benchmark_rate
-        return excess_returns.mean() / excess_returns.std()
+        return (excess_returns.mean() / excess_returns.std()) * np.sqrt(365)
 
     def calculate_max_drawdown(self, returns):
         cumulative_returns = (1 + returns).cumprod()
@@ -71,27 +71,41 @@ class Portfolio(ABC):
             "Max Drawdown": max_drawdown,
             "Calmar Ratio": calmar_ratio,
             "Volatility": annualized_volatility,
-            "Annualized Return": annualized_return
         }
 
     def performance_attribution(self, returns, weights):
-        benchmark_return = self.benchmark_returns.mean()
+        trading_days_per_year = 365
 
-        allocation_effect = (weights.mean() - benchmark_return) * returns.mean()
-        selection_effect = (returns.mean() - benchmark_return) * benchmark_return
-        # 1/N is the benchmark weight for each asset
-        interaction_effect = (weights.mean() - 1/len(weights)) * (returns.mean() - benchmark_return)
+        # Annualizing the returns and benchmark returns
+        annualized_returns = ((1 + returns).prod() ** (trading_days_per_year / len(returns))) - 1
+        annualized_benchmark_return = ((1 + self.benchmark_returns).prod() ** (trading_days_per_year / len(self.benchmark_returns))) - 1
+
+        # Calculate the effects
+        allocation_effect = (weights.mean(axis=0) - 1/len(weights.columns)) * annualized_benchmark_return
+        selection_effect = (annualized_returns - annualized_benchmark_return) * 1/len(weights.columns)
+        interaction_effect = (weights.mean(axis=0) - 1/len(weights.columns)) * (annualized_returns - annualized_benchmark_return)
 
         total_allocation_effect = allocation_effect.sum()
         total_selection_effect = selection_effect.sum()
         total_interaction_effect = interaction_effect.sum()
 
+        total_effect = total_allocation_effect + total_selection_effect + total_interaction_effect
+
+        # Normalize to ensure percentages add up to the total effect
+        allocation_effect_pct = total_allocation_effect / total_effect if total_effect != 0 else 0
+        selection_effect_pct = total_selection_effect / total_effect if total_effect != 0 else 0
+        interaction_effect_pct = total_interaction_effect / total_effect if total_effect != 0 else 0
+
         return {
-            "Portfolio Returns": returns.mean(),
-            "Benchmark Returns": benchmark_return,
+            "Portfolio Returns (Annualized)": annualized_returns,
+            "Benchmark Returns (Annualized)": annualized_benchmark_return,
+            "Difference in Returns": annualized_returns - annualized_benchmark_return,
             "Allocation Effect": total_allocation_effect,
             "Selection Effect": total_selection_effect,
-            "Interaction Effect": total_interaction_effect
+            "Interaction Effect": total_interaction_effect,
+            "Allocation Effect %": allocation_effect_pct,
+            "Selection Effect %": selection_effect_pct,
+            "Interaction Effect %": interaction_effect_pct
         }
 
     def bootstrap_performance_metrics(self, returns, num_bootstrap=1000):
@@ -125,7 +139,7 @@ class Portfolio(ABC):
         for metric, value in self.calculate_performance_metrics(daily_returns).items():
             print(f"{metric}: {value:.5f}")
         for metric, value in self.performance_attribution(daily_returns, weights).items():
-            print(f"{metric}: {value}")
+            print(f"{metric}: {value:.5f}")
         print("-" * 80)
 
         # print(self.bootstrap_performance_metrics(daily_returns))
