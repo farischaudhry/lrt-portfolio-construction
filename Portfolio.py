@@ -2,8 +2,21 @@ from abc import ABC, abstractmethod
 import numpy as np
 import pandas as pd
 from sklearn.utils import resample
+import yfinance as yf
 
 class Portfolio(ABC):
+    # @staticmethod
+    # def get_eth_futures_data():
+    #     eth_futures_data = []
+    #     for ticker in ['ETH=F']:
+    #         data = yf.download(ticker, start='2020-01-01')['Adj Close']
+    #         data.name = ticker
+    #         eth_futures_data.append(data)
+    #     eth_futures_data = pd.concat(eth_futures_data, axis=1)
+    #     return eth_futures_data
+
+    # eth_futures_data = get_eth_futures_data()
+
     def __init__(self, data, benchmark_returns=pd.Series(), rebalance_frequency=30, annual_risk_free_rate=0.05):
         self.data = data
         self.benchmark_returns = benchmark_returns

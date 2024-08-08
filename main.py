@@ -104,7 +104,6 @@ def long_short_usd_portfolios(bootstrap=False):
 
     portfolios = [
         EqualWeightedPortfolio(data, benchmark_returns),
-        EqualWeightLongShortPortfolio(data, benchmark_returns),
         MeanReversionLongShortPortfolio(data, benchmark_returns),
         MomentumLongShortPortfolio(data, benchmark_returns),
         HRPLongShortPortfolio(data, benchmark_returns),
