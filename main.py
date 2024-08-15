@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from datetime import datetime
+import os
 
 from Portfolio import Portfolio
 from EqualWeightedPortfolios import *
@@ -25,6 +26,19 @@ How to use:
 - To change between USD to ETH, set inETH=False or True when calling get_data in the main function.
 - Bootstraped performance metrics can be enabled by setting bootstrap=True when calling the test_portfolios function.
 '''
+
+def load_apy_data(directory='data/apy_data'):
+    apy_data = {}
+
+    # Loop through all files in the specified directory
+    for file in os.listdir(directory):
+        if file.endswith('.csv'):
+            file_path = os.path.join(directory, file)
+            df = pd.read_csv(file_path, parse_dates=['timestamp'], index_col='timestamp')
+            token_name = file.split('_')[0]  # Extract the token name from the filename
+            apy_data[token_name] = df['underlyingApy']
+
+    return apy_data
 
 def get_data(isOneValid=False, inETH=False):
     # ETH-USD is for normalizing the LRTs by ETH-USD price only
@@ -74,9 +88,9 @@ def long_only_usd_portfolios(bootstrap=False):
         EqualWeightedPortfolio(data, benchmark_returns),
         HRPPortfolio(data, benchmark_returns, distance_metric='euclidean'),
         MinimumVariancePortfolio(data, benchmark_returns),
-        RiskParityPortfolio(data, benchmark_returns),
-        EqualRiskContributionPortfolio(data, benchmark_returns),
-        MaximumDiversificationPortfolio(data, benchmark_returns),
+        # RiskParityPortfolio(data, benchmark_returns),
+        # EqualRiskContributionPortfolio(data, benchmark_returns),
+        # MaximumDiversificationPortfolio(data, benchmark_returns),
     ]
 
     print("\033[1;34mTesting Long-Only USD Portfolios\033[0m")
@@ -131,10 +145,10 @@ def main():
     data, eth_prices = get_data(inETH=True)
     benchmark_returns = calculate_benchmark_returns(data)
 
-    # long_only_usd_portfolios()
+    long_only_usd_portfolios()
     # long_only_eth_portfolios()
-    long_short_usd_portfolios()
-    long_short_eth_portfolios()
+    # long_short_usd_portfolios()
+    # long_short_eth_portfolios()
 
 if __name__ == '__main__':
     main()

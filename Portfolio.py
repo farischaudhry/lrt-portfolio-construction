@@ -48,9 +48,10 @@ class Portfolio(ABC):
 
     def calculate_information_ratio(self, returns):
         excess_returns = returns - self.benchmark_returns
-        ir = excess_returns.mean() / excess_returns.std()
-        if np.isnan(ir):
-            return 0
+        try :
+            ir = excess_returns.mean() / excess_returns.std()
+        except ZeroDivisionError:
+            ir = 0
         return ir * np.sqrt(365)
 
     def calculate_sharpe_ratio(self, returns):
